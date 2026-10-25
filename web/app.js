@@ -67,6 +67,7 @@
     dom.historyList = $("#history-list");
     dom.historyEmpty = $("#history-empty");
     dom.readiness = $("#readiness-list");
+    dom.appVersion = $("#app-version");
     dom.crumb = $("#crumb");
     dom.toast = $("#toast");
   }
@@ -148,6 +149,13 @@
     setModifierLabel();
 
     try {
+      // Version pill is cosmetic: never let a failed probe break startup.
+      api("/api/health")
+        .then((health) => {
+          if (health?.version && dom.appVersion) dom.appVersion.textContent = `v${health.version}`;
+        })
+        .catch(() => {});
+
       const [catalog, history] = await Promise.all([
         api("/api/providers"),
         api("/api/runs"),
