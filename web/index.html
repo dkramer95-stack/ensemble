@@ -27,6 +27,15 @@
 
       <section class="rail-section history-section" aria-labelledby="history-label">
         <div class="rail-label" id="history-label">History</div>
+        <div class="history-filter">
+          <svg class="history-filter-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M10.4 10.4 14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <input id="history-filter" type="text" placeholder="Filter runs"
+                 aria-label="Filter runs" autocomplete="off" spellcheck="false">
+          <span class="history-filter-hint" aria-hidden="true">/</span>
+        </div>
         <div id="history-list" class="history"></div>
         <p id="history-empty" class="rail-empty">Your runs will appear here.</p>
       </section>

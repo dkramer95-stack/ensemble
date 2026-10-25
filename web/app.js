@@ -28,6 +28,7 @@
     pollTimer: null,
     pollToken: 0,
     toastTimer: null,
+    historyFilter: "",
   };
 
   const dom = {};
@@ -62,6 +63,7 @@
     dom.judgeModel = $("#judge-model");
     dom.judgeStatus = $("#judge-status");
     dom.judgeBody = $("#judge-body");
+    dom.historyFilter = $("#history-filter");
     dom.historyList = $("#history-list");
     dom.historyEmpty = $("#history-empty");
     dom.readiness = $("#readiness-list");
@@ -204,6 +206,11 @@
       dom.prompt.focus();
     });
 
+    dom.historyFilter.addEventListener("input", () => {
+      S.historyFilter = dom.historyFilter.value;
+      renderHistoryItems();
+    });
+
     dom.historyList.addEventListener("click", (event) => {
       const item = event.target.closest(".history-item");
       if (!item) return;
@@ -243,6 +250,19 @@
       if (mod && event.key.toLowerCase() === "k") {
         event.preventDefault();
         dom.prompt.focus();
+        return;
+      }
+      if (event.key === "/" && !mod && !event.altKey && !isTypingTarget(event.target)) {
+        event.preventDefault();
+        dom.historyFilter.focus();
+        dom.historyFilter.select();
+        return;
+      }
+      if (event.key === "Escape" && document.activeElement === dom.historyFilter) {
+        event.preventDefault();
+        dom.historyFilter.value = "";
+        dom.historyFilter.dispatchEvent(new Event("input"));
+        dom.historyFilter.blur();
         return;
       }
       if (event.key === "Escape") {
@@ -524,7 +544,7 @@
     time.title = provider.tokens_total ? `${provider.tokens_total.toLocaleString()} tokens` : "";
 
     const copy = $(".pane-copy", pane);
-    copy.hidden = status !== "ok";
+    copy.hidden = status !== "ok" || !provider.text;
 
     const body = $(".pane-body", pane);
     if (status === "ok") {
@@ -893,8 +913,16 @@
 
   function renderHistory(runs) {
     S.runs = runs;
+    renderHistoryItems();
+  }
+
+  function renderHistoryItems() {
+    const query = S.historyFilter.trim().toLowerCase();
+    const runs = query
+      ? S.runs.filter((run) => (run.prompt || "").toLowerCase().includes(query))
+      : S.runs;
     dom.historyList.replaceChildren();
-    dom.historyEmpty.hidden = runs.length > 0;
+    dom.historyEmpty.hidden = S.runs.length > 0;
     for (const run of runs) {
       const item = el("button", "history-item");
       item.type = "button";
@@ -915,6 +943,9 @@
       meta.append(dots);
       item.append(meta);
       dom.historyList.append(item);
+    }
+    if (!runs.length && S.runs.length) {
+      dom.historyList.append(el("p", "history-none", "No runs match."));
     }
     if (S.current?.id) setActiveHistory(S.current.id);
   }
@@ -953,28 +984,56 @@
     requestAnimationFrame(() => updateOverflow(pane));
   }
 
+  function paneAnswer(pane) {
+    const key = pane?.dataset.key;
+    const provider = key
+      ? (S.current?.providers || []).find((item) => item.key === key)
+      : null;
+    if (provider?.text) return provider.text;
+    const body = pane?.querySelector(".md");
+    return body ? body.innerText.trim() : "";
+  }
+
   async function copyAnswer(pane) {
-    if (!pane) return;
-    const text = pane.querySelector(".md")?.innerText || "";
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("Answer copied.");
-    } catch (_) {
-      const area = document.createElement("textarea");
-      area.value = text;
-      area.style.position = "fixed";
-      area.style.opacity = "0";
-      document.body.append(area);
-      area.select();
-      try {
-        document.execCommand("copy");
-        toast("Answer copied.");
-      } catch (error) {
-        toast("Could not copy this answer.");
-      }
-      area.remove();
+    const text = paneAnswer(pane);
+    if (!text) {
+      toast("Copy failed");
+      return;
     }
+    const copied = await writeClipboard(text);
+    toast(copied ? "Copied" : "Copy failed");
+  }
+
+  async function writeClipboard(text) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (_) {
+        /* the Clipboard API can reject: fall back to the selection trick */
+      }
+    }
+    return legacyCopy(text);
+  }
+
+  function legacyCopy(text) {
+    const area = el("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "0";
+    area.style.left = "-9999px";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch (_) {
+      copied = false;
+    }
+    area.remove();
+    return copied;
   }
 
   /* ------------------------------------------------------------------- misc */
@@ -988,6 +1047,12 @@
 
   function prefersReducedMotion() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function isTypingTarget(node) {
+    if (!node || node.nodeType !== 1) return false;
+    const tag = node.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || node.isContentEditable;
   }
 
   function cssEscape(value) {

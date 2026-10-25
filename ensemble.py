@@ -35,7 +35,7 @@ from pathlib import Path
 from string import Template
 from typing import Dict, List, Optional, Tuple
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 HOME = Path(os.environ.get("ENSEMBLE_HOME", Path.home() / ".ensemble")).expanduser()
 GEMINI_KEY_FILE = HOME / "gemini.key"
 CONFIG_PATHS = [
@@ -183,11 +183,12 @@ def load_config() -> dict:
 
 def provider_settings(config: dict) -> Dict[str, dict]:
     settings = {}
+    defaults = config.get("defaults") or {}
     for key, base in PROVIDERS.items():
         override = (config.get("providers") or {}).get(key, {}) or {}
         merged = deep_merge(base, override)
-        if key in (config.get("defaults", {}).get("models") or {}):
-            merged["model"] = config["defaults"]["models"][key]
+        if key in (defaults.get("models") or {}):
+            merged["model"] = defaults["models"][key]
         settings[key] = merged
     for key, override in (config.get("providers") or {}).items():
         if key in settings:
@@ -659,6 +660,8 @@ def parse_output(parse: str, stdout: str, stderr: str) -> Tuple[str, str, dict]:
                 event = json.loads(line)
             except Exception:  # noqa: BLE001
                 continue
+            if not isinstance(event, dict):
+                continue
             kind = event.get("type")
             if kind == "item.completed":
                 item = event.get("item") or {}
@@ -690,6 +693,8 @@ def parse_output(parse: str, stdout: str, stderr: str) -> Tuple[str, str, dict]:
             try:
                 event = json.loads(line)
             except Exception:  # noqa: BLE001
+                continue
+            if not isinstance(event, dict):
                 continue
             if event.get("role") != "assistant":
                 continue
@@ -1240,7 +1245,10 @@ def safe_url(value: str) -> bool:
     """Allow relative URLs and http/https/mailto only."""
     if not value:
         return False
-    match = _SCHEME_RE.match(value)
+    # Browsers strip ASCII tab/CR/LF while parsing a URL, so remove control
+    # characters before deciding what the scheme really is (java\\nscript: ...).
+    cleaned = re.sub(r"[\x00-\x20\x7f]", "", value)
+    match = _SCHEME_RE.match(cleaned)
     if not match:
         return True
     return match.group(1).lower() in ("http", "https", "mailto")

@@ -100,7 +100,8 @@ The UI is a local control desk, not a chat window:
 
 - **One composer** with model toggles, context, timeout, and synthesis.
 - **Live panes** that fill in as each model finishes, with per-model status,
-  elapsed time, token counts, and copy buttons.
+  elapsed time, token counts, and a copy button that puts the raw markdown on
+  your clipboard.
 - **Cross-examine** any answer with another model: pick challenger and target,
   run it, and read the directed attack below the answers. This is the primary
   way to make the models argue.
@@ -108,15 +109,31 @@ The UI is a local control desk, not a chat window:
 - **Expand** a long answer into a full-width reading view; short answers keep
   the comparison grid.
 - **History** in the left rail, including runs started from the CLI. Runs are
-  shared through `~/.ensemble/runs`.
+  shared through `~/.ensemble/runs`. Press `/` to filter the list by prompt and
+  `Escape` to clear the filter.
 - **Synthesis** appears below the panes when enabled, with the judge's model
   named in the header.
 - **Stop** cancels the whole process group; partial answers are still saved.
 - **Open full report** goes to the same self-contained HTML report the CLI
   writes.
 
+Model output is rendered through an allowlist HTML sanitiser before it reaches
+the page or a saved report, and the server sends a restrictive
+`Content-Security-Policy`. Answers are treated as untrusted text, so a model
+that echoes hostile markup cannot execute script in the UI.
+
 The server binds `127.0.0.1` only and has no accounts or remote access. Start it
 from the directory you want `copy`/`in place` contexts to use.
+
+## Tests
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+Stdlib only, no network, and no provider CLI is invoked: output parsing is fed
+inline fixtures and the HTTP tests run against a real local server on port 0
+with run construction patched out. See `tests/README.md` for the coverage map.
 
 ## Desktop shortcut (macOS)
 
