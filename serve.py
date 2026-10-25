@@ -844,13 +844,25 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # noqa: D401 - quiet server
         return
 
+    def _security_headers(self):
+        """Baseline hardening: model output is untrusted, so constrain the page."""
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https: http:; font-src 'self'; connect-src 'self'; "
+            "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+        )
+
     def _json(self, payload, code=200):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
-        self.send_header("X-Content-Type-Options", "nosniff")
+        self._security_headers()
         self.end_headers()
         self.wfile.write(body)
 
@@ -866,7 +878,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", CONTENT_TYPES.get(path.suffix, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
-        self.send_header("X-Content-Type-Options", "nosniff")
+        self._security_headers()
         self.end_headers()
         self.wfile.write(body)
 

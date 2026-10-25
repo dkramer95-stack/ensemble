@@ -20,6 +20,7 @@ import concurrent.futures as cf
 import datetime as _dt
 import html
 import json
+from html.parser import HTMLParser
 import os
 import re
 import shutil
@@ -1209,6 +1210,120 @@ def load_run(run_dir: Path) -> Tuple[str, dict, List[Result]]:
     return prompt, meta, results
 
 
+SANITIZE_TAGS = {
+    "a", "b", "blockquote", "br", "code", "dd", "del", "div", "dl", "dt",
+    "em", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins",
+    "kbd", "li", "ol", "p", "pre", "s", "span", "strong", "sub", "summary",
+    "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u", "ul",
+}
+SANITIZE_VOID = {"br", "hr", "img"}
+# Whole subtrees are dropped, including their text.
+SANITIZE_DROP = {
+    "script", "style", "iframe", "frame", "frameset", "object", "embed",
+    "applet", "template", "noscript", "svg", "math", "form", "input",
+    "button", "select", "textarea", "link", "meta", "base",
+}
+SANITIZE_ATTRS = {
+    "a": {"href", "title"},
+    "img": {"src", "alt", "title", "width", "height"},
+    "code": {"class"},
+    "pre": {"class"},
+    "span": {"class"},
+    "div": {"class"},
+    "th": {"align", "colspan", "rowspan"},
+    "td": {"align", "colspan", "rowspan"},
+}
+_SCHEME_RE = re.compile(r"^\s*([a-zA-Z][a-zA-Z0-9+.-]*):")
+
+
+def safe_url(value: str) -> bool:
+    """Allow relative URLs and http/https/mailto only."""
+    if not value:
+        return False
+    match = _SCHEME_RE.match(value)
+    if not match:
+        return True
+    return match.group(1).lower() in ("http", "https", "mailto")
+
+
+class _Sanitizer(HTMLParser):
+    """Rebuild an HTML fragment from an allowlist of tags and attributes."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: List[str] = []
+        self.stack: List[str] = []
+        self.skip = 0
+
+    def _attrs(self, tag: str, attrs) -> str:
+        allowed = SANITIZE_ATTRS.get(tag, set())
+        rendered: List[str] = []
+        for name, value in attrs:
+            name = (name or "").lower()
+            if name not in allowed or value is None:
+                continue
+            if name in ("href", "src") and not safe_url(value):
+                continue
+            rendered.append(f' {name}="{html.escape(value, quote=True)}"')
+        if tag == "img":
+            rendered.append(' referrerpolicy="no-referrer"')
+            rendered.append(' loading="lazy"')
+        return "".join(rendered)
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag in SANITIZE_DROP:
+            self.skip += 1
+            return
+        if self.skip or tag not in SANITIZE_TAGS:
+            return
+        self.parts.append(f"<{tag}{self._attrs(tag, attrs)}>")
+        if tag not in SANITIZE_VOID:
+            self.stack.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        tag = tag.lower()
+        if self.skip or tag not in SANITIZE_TAGS or tag in SANITIZE_DROP:
+            return
+        self.parts.append(f"<{tag}{self._attrs(tag, attrs)}>")
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in SANITIZE_DROP:
+            self.skip = max(0, self.skip - 1)
+            return
+        if self.skip or tag not in self.stack:
+            return
+        while self.stack:
+            top = self.stack.pop()
+            self.parts.append(f"</{top}>")
+            if top == tag:
+                break
+
+    def handle_data(self, data):
+        if not self.skip:
+            self.parts.append(html.escape(data, quote=False))
+
+    def handle_comment(self, data):  # comments never reach the page
+        return
+
+    def close(self):
+        super().close()
+        while self.stack:
+            self.parts.append(f"</{self.stack.pop()}>")
+
+
+def sanitize_html(fragment: str) -> str:
+    """Strip anything executable from an HTML fragment (model output)."""
+    parser = _Sanitizer()
+    try:
+        parser.feed(fragment or "")
+        parser.close()
+    except Exception:  # noqa: BLE001 - fail closed on malformed markup
+        return f"<pre>{html.escape(fragment or '')}</pre>"
+    return "".join(parser.parts)
+
+
 def render_markdown(text: str) -> str:
     try:
         import markdown  # type: ignore
@@ -1220,6 +1335,9 @@ def render_markdown(text: str) -> str:
         )
     except Exception:  # noqa: BLE001 - no dependency on the markdown package
         return f"<pre>{html.escape(text)}</pre>"
+
+    # markdown passes raw HTML through untouched; model output is untrusted.
+    body = sanitize_html(body)
 
     def wrap_table(match):
         table = match.group(0)
@@ -2355,7 +2473,6 @@ def print_help() -> None:
           ensemble run [options] "prompt"   same, with flags
           ensemble doctor [--probe]         check installs, versions and authentication
           ensemble judge <run-dir>          synthesize a finished run with one model
-          ensemble challenge <run-dir> --from kimi --to deepseek
           ensemble challenge <run-dir> --from kimi --to deepseek
           ensemble web                      open the local comparison UI
           ensemble providers                show provider configuration
