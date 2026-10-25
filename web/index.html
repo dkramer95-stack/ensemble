@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>ensemble</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2b3f'/%3E%3Crect x='7' y='7' width='7' height='7' rx='1.5' fill='%235B5BD6'/%3E%3Crect x='18' y='7' width='7' height='7' rx='1.5' fill='%23C15F3C'/%3E%3Crect x='7' y='18' width='7' height='7' rx='1.5' fill='%232F6BFF'/%3E%3Crect x='18' y='18' width='7' height='7' rx='1.5' fill='%230B8F6A'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div class="rail-top">
+        <a class="brand" href="/" aria-label="ensemble home">
+          <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="brand-name">ensemble</span>
+        </a>
+        <p class="tagline">one prompt · four models</p>
+        <button id="new-run" class="new-run" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          New comparison
+        </button>
+      </div>
+
+      <section class="rail-section history-section" aria-labelledby="history-label">
+        <div class="rail-label" id="history-label">History</div>
+        <div id="history-list" class="history"></div>
+        <p id="history-empty" class="rail-empty">Your runs will appear here.</p>
+      </section>
+
+      <section class="rail-section readiness" aria-labelledby="models-label">
+        <div class="rail-label" id="models-label">Models</div>
+        <div id="readiness-list" class="readiness-list"></div>
+        <p class="rail-foot">local only · v1.0</p>
+      </section>
+    </aside>
+
+    <main class="main">
+      <div class="topline">
+        <span id="crumb">New comparison</span>
+        <a id="report-link" class="report-link" href="#" target="_blank" rel="noopener" hidden>
+          Open full report <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <section class="composer" aria-label="Prompt">
+        <label class="sr-only" for="prompt">Prompt</label>
+        <textarea id="prompt" rows="3" placeholder="Ask all four models the same thing…"
+                  spellcheck="false" autofocus></textarea>
+
+        <div class="samples" id="samples">
+          <span class="samples-label">Try</span>
+          <button type="button" data-prompt="Compare Postgres and SQLite for a small analytics product. Pick one and defend it.">Postgres or SQLite?</button>
+          <button type="button" data-prompt="A founder has $10k and six months to validate a B2B idea. What should they spend it on, and what should they refuse to buy?">A $10k validation plan</button>
+          <button type="button" data-prompt="Write the hardest interview question for a senior backend engineer, then answer it well.">A hard interview question</button>
+        </div>
+
+        <div class="controls">
+          <div id="model-picker" class="model-picker" role="group" aria-label="Models"></div>
+          <div class="options">
+            <label class="field">
+              <span>Context</span>
+              <select id="context" title="Where the models work">
+                <option value="temp">Isolated dirs</option>
+                <option value="copy">Project copy</option>
+                <option value="cwd">In place</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Timeout</span>
+              <select id="timeout" title="Per-model timeout">
+                <option value="120">2 min</option>
+                <option value="300" selected>5 min</option>
+                <option value="600">10 min</option>
+              </select>
+            </label>
+            <label class="toggle" title="Open debate: every model sees the others and rebuts. Off by default.">
+              <input type="checkbox" id="debate">
+              <span>Open debate</span>
+            </label>
+            <label class="toggle" title="Ask one model to compare all answers">
+              <input type="checkbox" id="judge" checked>
+              <span>Synthesis</span>
+            </label>
+            <select id="judge-provider" class="judge-select" aria-label="Synthesis model"></select>
+            <button id="run" class="primary" type="button">
+              <span id="run-label">Run 4 models</span>
+              <kbd>⌘↵</kbd>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="empty" class="empty">
+        <div class="empty-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p>Four answers, one prompt. They’ll land here as each model finishes.</p>
+      </section>
+
+      <section id="run-view" class="run-view" hidden>
+        <header class="run-head">
+          <div class="run-heading">
+            <span id="run-state" class="run-state">Running</span>
+            <h1 id="run-title">…</h1>
+            <p class="run-meta" id="run-meta"></p>
+          </div>
+          <div class="run-actions">
+            <button id="reuse" class="ghost" type="button">Reuse prompt</button>
+            <button id="cancel" class="ghost danger" type="button" hidden>Stop</button>
+          </div>
+        </header>
+        <section id="challenge-bar" class="challenge-bar" hidden>
+          <span class="challenge-kicker">Cross-examine</span>
+          <select id="challenge-from" aria-label="Challenger"></select>
+          <span class="challenge-vs">argues against</span>
+          <select id="challenge-to" aria-label="Target"></select>
+          <button id="challenge-run" class="ghost" type="button">Run challenge</button>
+        </section>
+        <div id="panes" class="panes"></div>
+        <section id="challenges" class="challenges" hidden></section>
+        <section id="judge-pane" class="judge" hidden aria-labelledby="judge-title">
+          <header class="judge-head">
+            <h2 id="judge-title">Synthesis</h2>
+            <span id="judge-model" class="judge-model"></span>
+            <span id="judge-status" class="status"></span>
+          </header>
+          <div id="judge-body" class="md"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <template id="pane-template">
+    <article class="pane">
+      <header class="pane-head">
+        <span class="pane-dot" aria-hidden="true"></span>
+        <h2 class="pane-title"></h2>
+        <span class="pane-model"></span>
+        <span class="pane-time"></span>
+        <span class="pane-status status"></span>
+        <div class="pane-tools">
+          <button type="button" class="icon-btn pane-copy" title="Copy answer" aria-label="Copy answer" hidden>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M10.5 5V4.2c0-1-.8-1.7-1.7-1.7H4.2c-1 0-1.7.8-1.7 1.7v4.6c0 1 .8 1.7 1.7 1.7H5" stroke="currentColor" stroke-width="1.4"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn pane-focus" title="Expand full answer" aria-label="Expand full answer">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 2H2v4M10 2h4v4M6 14H2v-4M10 14h4v-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <span class="pane-focus-label">Expand</span>
+          </button>
+        </div>
+      </header>
+      <div class="pane-body"></div>
+    </article>
+  </template>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
