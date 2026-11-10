@@ -13,6 +13,10 @@ synthesis in one place.
 
 Read the case study: [public PDF](CASE_STUDY.pdf) ([Markdown](CASE_STUDY.md)). It is an academic working paper with research questions, related work, a design-science method, a failure taxonomy, threats to validity, and a source map.
 
+**Full-length edition:** [EXPANDED_PAPER.pdf](EXPANDED_PAPER.pdf) ([Markdown](EXPANDED_PAPER.md)), 25,968 words. Adds a formal protocol specification with 14 numbered invariants, a 14-class failure taxonomy, a comparison with adjacent multi-model systems, seven design principles, a cost and latency model built from the measured timings, a controlled study design, and a replication package. Same evidence as the case study; more argument.
+
+**Demo page:** [demo/index.html](demo/index.html) is a static page built from one real run — the prompt, the two answers that came back, the judge synthesis, and the two providers that failed. No JavaScript, no network. Rebuild it from any run with `python3 demo/build.py --run <run-dir>`.
+
 For blind review, use [CASE_STUDY_SUBMISSION.pdf](CASE_STUDY_SUBMISSION.pdf). The submission edition omits the cover, author line, and affiliation. Rebuild either edition with `python3 build_case_study.py` (both), `--public`, or `--submission`.
 
 TOCHI-style editions: [public](CASE_STUDY_TOCHI.pdf) and [anonymous](CASE_STUDY_TOCHI_ANON.pdf). These use a single-column ACM journal layout, CCS concepts, and numeric ACM-style references, built by `python3 build_tochi.py`. They are a CSS typeset approximation of ACM TOCHI because TeX/`acmart` is not installed. The BibTeX source is [references.bib](references.bib).
