@@ -17,6 +17,15 @@ For blind review, use [CASE_STUDY_SUBMISSION.pdf](CASE_STUDY_SUBMISSION.pdf). Th
 
 TOCHI-style editions: [public](CASE_STUDY_TOCHI.pdf) and [anonymous](CASE_STUDY_TOCHI_ANON.pdf). These use a single-column ACM journal layout, CCS concepts, and numeric ACM-style references, built by `python3 build_tochi.py`. They are a CSS typeset approximation of ACM TOCHI because TeX/`acmart` is not installed. The BibTeX source is [references.bib](references.bib).
 
+Shorter academic artifacts:
+
+- [Workshop paper](WORKSHOP_PAPER.pdf), 6 pages
+- [Study design](STUDY_DESIGN.pdf), 2 pages
+- [Evaluation feasibility memo](EVALUATION_FEASIBILITY.pdf), 2 pages
+- [PhD writing sample](PHD_WRITING_SAMPLE.pdf), 10 pages
+
+Build them with `python3 build_short_papers.py`.
+
 ```
 $ ensemble "Should a 5-engineer startup run Kubernetes? Give a clear recommendation."
 

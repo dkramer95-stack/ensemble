@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Evaluation Feasibility · Decision memo</title>
+<style>
+@page { size: Letter; margin: 0.85in 0.95in 0.8in; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0; color: #14171c; background: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 10.5pt; line-height: 1.3;
+}
+h1 {
+  font: 700 20pt/1.18 Arial, Helvetica, sans-serif;
+  letter-spacing: -.02em; margin: 0 0 6pt; color: #111;
+}
+h1 + p { font: 10.5pt/1.4 Arial, Helvetica, sans-serif; color: #333; margin: 0 0 14pt; }
+h2 {
+  font: 700 12.5pt/1.25 Arial, Helvetica, sans-serif;
+  margin: 16pt 0 4pt; color: #111; break-after: avoid;
+}
+h3 {
+  font: 700 10.5pt/1.3 Arial, Helvetica, sans-serif;
+  margin: 10pt 0 2pt; color: #111; break-after: avoid;
+}
+p { margin: 0 0 5.5pt; orphans: 2; widows: 2; }
+blockquote {
+  margin: 7pt 0 8pt; padding: 6pt 9pt; background: #f4f5f7;
+  border-left: 2px solid #777; font-size: .95em;
+}
+blockquote p:last-child { margin-bottom: 0; }
+ul, ol { margin: 3pt 0 7pt 17pt; padding: 0; }
+li { margin: 0 0 2.5pt; }
+code { font-family: "Courier New", monospace; font-size: .84em; background: #f1f2f4; padding: 0 2px; }
+pre {
+  font-family: "Courier New", monospace; font-size: .78em; line-height: 1.35;
+  background: #f4f5f7; border: 1px solid #ddd; padding: 6pt 7pt;
+  white-space: pre-wrap; word-break: break-word; margin: 5pt 0 8pt; break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 5pt 0 9pt; font: 8pt/1.3 Arial, Helvetica, sans-serif; }
+th { background: #222; color: #fff; text-align: left; border: 1px solid #222; padding: 3pt 4.5pt; }
+td { border: 1px solid #bbb; padding: 3pt 4.5pt; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f7f8; }
+p:has(> img) { text-align: center; margin: 8pt 0 2pt; break-inside: avoid; break-after: avoid; }
+img { max-width: 88%; height: auto; border: 1px solid #bbb; }
+p:has(> img) + p { break-before: avoid; break-inside: avoid; }
+p > em:only-child { display: block; font-size: .9em; color: #444; margin: 2pt 0 9pt; }
+.figure-block, .table-block { break-inside: avoid; page-break-inside: avoid; }
+.figure-block img { margin-bottom: 2pt; }
+p:has(+ pre) { break-after: avoid; }
+p:has(+ table) { break-after: avoid; }
+</style></head>
+<body><h1>Is the Evaluation Feasible? A Decision Memo</h1>
+<p><strong>Derek Kramer</strong><br>
+Independent researcher, Jakarta, Indonesia<br>
+October 2026</p>
+<h2>Decision</h2>
+<p><strong>Partially feasible.</strong> The workshop paper and the 10-page writing sample are feasible now. A full two-phase evaluation is not feasible in the current setup without a pilot, a budget for provider calls, and human-subjects approval.</p>
+<p>The binding constraints are not the code. They are provider quota, wall time, rater time, and access to participants.</p>
+<h2>What is feasible now</h2>
+<ul>
+<li>The six-page workshop paper, using the existing case and correcting the test claims.</li>
+<li>The ten-page writing sample, with a methods section and explicit limitations.</li>
+<li>A 116-test stdlib suite that already passes in under a second.</li>
+<li>An eight-prompt pilot comparing independent answers, judge-only synthesis, and directed challenge.</li>
+</ul>
+<p>The pilot is useful because it measures variance, quota, and time before the full design is committed.</p>
+<h2>What is not feasible now</h2>
+<p>A full model study of 40 prompts, five conditions, and three repetitions is 4,080 model calls if each condition is counted at the call level:</p>
+<ul>
+<li>Independent: 4 calls per repetition.</li>
+<li>Judge-only: 4 calls plus 1 judge.</li>
+<li>Directed: 4 calls plus 1 challenge.</li>
+<li>Broadcast: 4 calls plus 4 rebuttals.</li>
+<li>Self-consistency: 4 models × 3 samples.</li>
+</ul>
+<p>At the observed latencies, with Kimi often the slowest provider, the full run is a multi-day job and likely exceeds current subscription quotas. The study design should not promise it until the pilot returns real numbers.</p>
+<p>The human study is further away. Thirty participants at 60 to 75 minutes each is 30 to 38 session hours before recruitment, scheduling, compensation, transcription, and analysis. It requires IRB approval and a participant pool that this project does not currently have. It is a three-to-six month project, not an extension of the current week.</p>
+<h2>What the pilot should measure</h2>
+<ol>
+<li>Completion rate per condition.</li>
+<li>Wall time and provider failures.</li>
+<li>Token use where the provider reports it.</li>
+<li>Variance in target specificity between repetitions.</li>
+<li>Whether two raters can score the directed and broadcast outputs without constant adjudication.</li>
+</ol>
+<p>The pilot should use eight prompts from the four categories, three conditions, and two repetitions. That is small enough to finish, large enough to expose quota and coding problems.</p>
+<h2>Stop and go criteria</h2>
+<p>Proceed to the full model study only if:</p>
+<ul>
+<li>At least 90% of provider calls complete.</li>
+<li>The pilot finishes within a defined wall-time and quota budget.</li>
+<li>The rubric produces acceptable agreement on the overlap sample.</li>
+<li>The directed and broadcast conditions produce distinguishable argument structures.</li>
+</ul>
+<p>If those conditions fail, reduce the design to three conditions, 20 prompts, and two repetitions. A smaller study with a clean measure is better than a large study with missing cells.</p>
+<p>Proceed to the human study only if IRB approval, recruitment, and compensation are in place. Do not run an informal convenience sample and call it a user study.</p>
+<h2>Recommended path</h2>
+<ol>
+<li>Submit the workshop paper for feedback. It is honest about being a design case.</li>
+<li>Use the ten-page paper as the PhD writing sample.</li>
+<li>Run the eight-prompt pilot next, not the full 40-prompt study.</li>
+<li>Decide on the full study from the pilot data.</li>
+<li>Start the IRB and recruitment process only if the model-level results justify a human study.</li>
+</ol>
+<h2>Bottom line</h2>
+<p>The project can support a workshop paper and a PhD writing sample today. It cannot support a full TOCHI-style empirical paper today. The difference is not length. It is whether the study has completed the comparison it claims to motivate.</p>
+<p>The next honest artifact is the pilot protocol, not another expansion of the manuscript.</p></body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Evaluating Directed Cross-Examination · Study design</title>
+<style>
+@page { size: Letter; margin: 0.8in 0.9in 0.75in; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0; color: #14171c; background: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 9.2pt; line-height: 1.1;
+}
+h1 {
+  font: 700 20pt/1.18 Arial, Helvetica, sans-serif;
+  letter-spacing: -.02em; margin: 0 0 6pt; color: #111;
+}
+h1 + p { font: 10.5pt/1.4 Arial, Helvetica, sans-serif; color: #333; margin: 0 0 14pt; }
+h2 {
+  font: 700 12.5pt/1.25 Arial, Helvetica, sans-serif;
+  margin: 16pt 0 4pt; color: #111; break-after: avoid;
+}
+h3 {
+  font: 700 10.5pt/1.3 Arial, Helvetica, sans-serif;
+  margin: 10pt 0 2pt; color: #111; break-after: avoid;
+}
+p { margin: 0 0 5.5pt; orphans: 2; widows: 2; }
+blockquote {
+  margin: 7pt 0 8pt; padding: 6pt 9pt; background: #f4f5f7;
+  border-left: 2px solid #777; font-size: .95em;
+}
+blockquote p:last-child { margin-bottom: 0; }
+ul, ol { margin: 3pt 0 7pt 17pt; padding: 0; }
+li { margin: 0 0 2.5pt; }
+code { font-family: "Courier New", monospace; font-size: .84em; background: #f1f2f4; padding: 0 2px; }
+pre {
+  font-family: "Courier New", monospace; font-size: .78em; line-height: 1.35;
+  background: #f4f5f7; border: 1px solid #ddd; padding: 6pt 7pt;
+  white-space: pre-wrap; word-break: break-word; margin: 5pt 0 8pt; break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 5pt 0 9pt; font: 8pt/1.3 Arial, Helvetica, sans-serif; }
+th { background: #222; color: #fff; text-align: left; border: 1px solid #222; padding: 3pt 4.5pt; }
+td { border: 1px solid #bbb; padding: 3pt 4.5pt; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f7f8; }
+p:has(> img) { text-align: center; margin: 8pt 0 2pt; break-inside: avoid; break-after: avoid; }
+img { max-width: 88%; height: auto; border: 1px solid #bbb; }
+p:has(> img) + p { break-before: avoid; break-inside: avoid; }
+p > em:only-child { display: block; font-size: .9em; color: #444; margin: 2pt 0 9pt; }
+.figure-block, .table-block { break-inside: avoid; page-break-inside: avoid; }
+.figure-block img { margin-bottom: 2pt; }
+p:has(+ pre) { break-after: avoid; }
+p:has(+ table) { break-after: avoid; }
+</style></head>
+<body><h1>Evaluating Directed Cross-Examination: A Two-Phase Study Design</h1>
+<p><strong>Derek Kramer</strong><br>
+Independent researcher, Jakarta, Indonesia<br>
+October 2026</p>
+<p><strong>Purpose.</strong> This document specifies a study that can test the claims the workshop paper deliberately does not make. It separates a model-level evaluation from a human decision study. The first phase is feasible with the current system and accounts. The second phase requires human subjects review, recruitment, and a larger time budget.</p>
+<h2>1. Research questions and hypotheses</h2>
+<p><strong>RQ1.</strong> Does directed cross-examination produce more specific and better-attributed arguments than broadcast debate?</p>
+<p><strong>RQ2.</strong> Does the format change the recommendation, the justification, or the reader's decision?</p>
+<p><strong>RQ3.</strong> What are the cost and latency penalties of each format?</p>
+<p><strong>H1.</strong> Directed challenges quote more target claims and produce fewer unattributed objections than broadcast debate.</p>
+<p><strong>H2.</strong> Readers exposed to a directed challenge are more likely to identify the strongest objection than readers exposed to a broadcast transcript.</p>
+<p><strong>H3.</strong> Directed challenge has lower wall time and fewer model calls than broadcast debate.</p>
+<p>H1 and H3 are model-level hypotheses. H2 requires people and therefore belongs to Phase 2.</p>
+<h2>2. Phase 1: model-level study</h2>
+<h3>Design</h3>
+<p>The unit is a prompt-condition pair. Five conditions are compared:</p>
+<ol>
+<li>Independent answers only.</li>
+<li>Judge-only synthesis.</li>
+<li>Directed challenge, one challenger against one target.</li>
+<li>Broadcast debate.</li>
+<li>Self-consistency, three samples with a majority answer.</li>
+</ol>
+<p>The model panel is Kimi, Gemini, DeepSeek, and Codex, held constant within a replication. Each prompt runs three times per condition to estimate variance. A pilot of eight prompts estimates cost, variance, and quota limits before the full run.</p>
+<h3>Prompt corpus</h3>
+<p>Forty prompts are drawn from four categories:</p>
+<ul>
+<li>Factual questions with a checkable answer.</li>
+<li>Design questions with defensible alternatives.</li>
+<li>Policy questions with value disagreement.</li>
+<li>Ambiguous questions with no clear answer.</li>
+</ul>
+<p>Category is a blocking factor, not a claim about domain coverage. The prompts and model versions are frozen and archived before data collection.</p>
+<h3>Measures</h3>
+<table>
+<thead>
+<tr>
+<th>Construct</th>
+<th>Operationalization</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Target specificity</td>
+<td>Number of target claims quoted, coded against the target answer</td>
+<td>Two blind raters</td>
+</tr>
+<tr>
+<td>Attribution</td>
+<td>Whether each objection names the model and claim it addresses</td>
+<td>Two blind raters</td>
+</tr>
+<tr>
+<td>Argument quality</td>
+<td>5-point rubric: claim, evidence, counterargument, concession, verdict</td>
+<td>Two blind raters</td>
+</tr>
+<tr>
+<td>Correctness</td>
+<td>Exact or rubric-scored correctness where ground truth exists</td>
+<td>Researcher plus spot-check</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Model calls, wall time, tokens where reported</td>
+<td>Run artifacts</td>
+</tr>
+<tr>
+<td>Consistency</td>
+<td>Interface, report, and judge agree on the same result</td>
+<td>Artifact audit</td>
+</tr>
+</tbody>
+</table>
+<p>Two raters score a 25% overlap sample. Report Cohen's kappa or ICC. Disagreements are resolved by discussion, and the unresolved rate is reported.</p>
+<h3>Analysis</h3>
+<p>The primary model is a mixed-effects model with condition as a fixed effect, prompt category as a fixed effect, and prompt and model as random intercepts. Report estimated marginal means, 95% confidence intervals, and standardized effect sizes. The study is preregistered before the full run. The pilot is used to revise the rubric, not to test hypotheses.</p>
+<h2>3. Phase 2: human decision study</h2>
+<h3>Design</h3>
+<p>A within-subject study with 24 to 36 participants. Each participant sees four reports: independent answers, judge-only, directed challenge, and broadcast debate. Order is counterbalanced. Each report is paired with a decision task that has a defensible recommendation and one material caveat.</p>
+<h3>Participants</h3>
+<p>Recruit practitioners who make technical or product decisions and have no stake in the model vendors. Screening excludes people who have worked on this project. Compensation follows local norms. Target 30 completed participants, with a stopping rule based on the preregistered sample-size calculation.</p>
+<h3>Measures</h3>
+<ul>
+<li>Decision accuracy against an expert-defined rubric.</li>
+<li>Time to decision.</li>
+<li>Confidence and trust calibration.</li>
+<li>Ability to identify the strongest objection.</li>
+<li>Perceived auditability and cognitive load.</li>
+<li>Preference and free-text rationale.</li>
+</ul>
+<h3>Procedure</h3>
+<p>Each session lasts 60 to 75 minutes. Participants read four reports, answer comprehension checks, make a decision, and complete a short exit interview. Think-aloud is optional and analyzed separately. Sessions are recorded only with consent.</p>
+<h3>Analysis</h3>
+<p>Mixed-effects models with condition, order, and task as fixed effects and participant as a random intercept. Report effect sizes and confidence intervals. Predefine the primary outcome as correct identification of the strongest objection. Secondary outcomes are exploratory and labeled as such.</p>
+<h2>4. Feasibility</h2>
+<p>A pilot for Phase 1 is feasible now. The full Phase 1 run is feasible only if the pilot confirms that provider quota and wall time are manageable. The system can run the conditions, the artifacts are already structured for coding, and the main constraint is provider quota and wall time. A rough full run is 40 prompts × 5 conditions × 3 repetitions, with some conditions making one call and others making four. That is a multi-day run and may exceed current subscription limits. The pilot is designed to measure that before committing.</p>
+<p>Phase 2 is conditionally feasible. It requires IRB approval, recruitment, compensation, and a secure way to present reports without exposing model identities. That is a three-to-six month project, not a weekend extension. The current single-user setup has no participant pool.</p>
+<p>All prompts, code, rubrics, and de-identified ratings will be released with the paper. The model phase involves no human subjects; the human phase requires informed consent and the right to withdraw.</p></body>
+</html>

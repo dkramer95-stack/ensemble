@@ -423,7 +423,7 @@ The second shock was the operating system. launchd could not read the source dir
 | F4 | Authentication heterogeneity | 429, expired OAuth, `IneligibleTierError` | Separate accounts, quotas, and entitlement rules | API key, model alias, provider-specific fallbacks | Auth is a first-order integration cost |
 | F5 | Operating-system integration | Server would not start after restart; generic icon; protected app | launchd disabled state, TCC, iCloud, app bundle metadata | Enable agent, copy runtime, minimal app, dockutil | Local-first is an OS lifecycle project |
 | F6 | Evaluation gap | No correctness or trust measure | Single-user case, no blind ratings, no repeated runs | Treat findings as design evidence; propose evaluation | Argument quality needs an external criterion |
-| F7 | Test gap | Bugs found by screenshots and judge complaints | No automated state or API tests | Manual regression checks; future test suite | Observability can substitute temporarily, not permanently |
+| F7 | Test coverage gap | Early bugs were found by screenshots and judge complaints; a 116-test stdlib suite was added after the case | Tests arrived after the design work and cover parsers, config, sanitization, artifacts, and the HTTP API, not end-to-end providers or the UI | Regression suite added; end-to-end and UI tests remain future work | Tests improve confidence but do not replace evaluation |
 
 The failure table is not a scorecard. F1 and F2 changed the design. F6 and F7 describe what this work cannot claim. The operational failures matter because they determine whether anyone can use the artifact at all.
 
@@ -448,6 +448,14 @@ The cost of an argument round is easy to state in calls and harder to state in t
 That detail matters for the interface. A user waits for the whole round, not for the average call. Streaming would make the wait more legible, but it would not reduce the total. A directed challenge is easier to justify because the user can name the question it answers: does this answer survive an attack from this model? Open debate asks a broader question and charges the user for four attempts.
 
 The case does not support a monetary comparison. Token counts were reported for some providers and not others. The effective cost depends on subscription arrangements that changed during the week. The call-count comparison is the part that travels: broadcast scales with the number of participants, directed challenge does not.
+
+### 6.8 What the test suite adds
+
+The test suite arrived after the case narrative, not during the design work. It is a stdlib `unittest` suite of 116 tests. It covers the provider parsers with inline fixtures, configuration merging, Markdown and HTML sanitization, artifact round-trips, and the HTTP API. It also includes regression tests for three defects the suite found: a newline-obfuscated `javascript:` URL, non-object JSONL lines, and a `"defaults": null` configuration.
+
+The suite changes the engineering claim from "manual verification only" to "partially verified." It does not execute a real provider CLI, does not exercise a live challenge, and does not drive the browser interface. A test can confirm that a result with a debate round serializes and renders. It cannot confirm that the model produced a good argument. That distinction is why the evaluation gap remains separate from the test gap.
+
+The suite also illustrates the difference between regression coverage and research evidence. The three regressions are concrete and repeatable. The design claims in this paper are not. A reader should treat the tests as support for the implementation, not as support for the argument that directed challenge improves decisions.
 
 ## 7. Discussion
 
@@ -534,7 +542,7 @@ Directed challenge is currently one-way. A two-call exchange, attack then respon
 
 Judging needs more work. The judge should not see model names. Several judges should score the same run, and the system should report disagreement. That would reduce brand and self-preference effects and make uncertainty visible. Evidence checking would help too. A debate between models with no retrieval can amplify confident errors; requiring sources would change what the arguments look like.
 
-The engineering work is less interesting but necessary. Streaming, per-challenge cancellation, token budgets, and caching would make the system usable for shorter interactions. A signed application, one runtime location, Keychain storage, automated tests, and a health check that verifies the server would make it reliable enough for a broader study.
+The engineering work is less interesting but necessary. Streaming, per-challenge cancellation, token budgets, and caching would make the system usable for shorter interactions. A signed application, one runtime location, Keychain storage, an expanded end-to-end and UI test suite, and a health check that verifies the server would make it reliable enough for a broader study.
 
 An engineering evaluation would ask different questions from a model evaluation. How often does the server survive a restart? How often does a provider change break the parser? How long does a new provider take to integrate? How many state mismatches appear per hundred runs? Those are measurable, and they matter more to a user than a small difference in argument quality. The case suggests that these questions deserve as much attention as the debate protocol.
 
@@ -870,6 +878,6 @@ The challenge path needed a smaller version of the same treatment. `challenges_f
 
 ### H.4 What the map does not cover
 
-The map does not include the provider parsers, the report CSS, or every UI state. Those are implementation details that change more often than the design principles. It also does not include an automated test suite, because none exists. The map is a reading aid, not a verification claim. A reader who wants to verify a specific statement should start with the artifact named in the table, then compare it with the report and the judge.
+The map does not include the provider parsers, the report CSS, or every UI state. Those are implementation details that change more often than the design principles. A 116-test stdlib suite now covers the parsers, configuration, sanitization, artifacts, and the HTTP API, but it did not exist during the design work and does not cover end-to-end provider runs, the challenge lifecycle, or the UI. The map is a reading aid, not a verification claim. A reader who wants to verify a specific statement should start with the artifact named in the table, then compare it with the report and the judge.
 
 The source map also shows where the case is weakest. The design principles are implemented across a small number of files, but only a few of them are directly tested by the case. DP1 and DP6 are supported by failures. DP3 is supported by a bug and a fix. DP4 and DP5 are supported by two challenges. DP2 is supported by the shape of the first round, not by an experiment. The uneven evidence is part of the result.
